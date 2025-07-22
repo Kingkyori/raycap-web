@@ -1,0 +1,111 @@
+.register-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eaf3ff 0%, #dbefff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-card {
+  background: rgba(255,255,255,0.95);
+  border-radius: 22px;
+  padding: 32px 28px;
+  max-width: 350px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(50,90,200,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.icon-box {
+  width: 52px;
+  height: 52px;
+  background: #eae6fd;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 2.1rem;
+  color: #5732a3;
+  box-shadow: 0 2px 18px rgba(100,100,255,0.09);
+}
+
+.register-title {
+  margin-bottom: 6px;
+  margin-top: 0;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #222d3a;
+}
+
+.register-subtitle {
+  text-align: center;
+  color: #444c5c;
+  margin-bottom: 24px;
+  font-size: 0.97rem;
+}
+
+.input-box {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.input-box input {
+  width: 100%;
+  padding: 10px 13px;
+  font-size: 1rem;
+  border-radius: 9px;
+  border: 1.4px solid #e0e6f7;
+  background: #f7f9fd;
+  margin-top: 2px;
+  outline: none;
+  color: #373d48;
+  transition: border 0.2s;
+}
+.input-box input:focus {
+  border: 1.4px solid #b2d0ff;
+  background: #eaf3ff;
+}
+
+.register-btn {
+  width: 100%;
+  background: #191c22;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 10px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 8px rgba(50,70,120,0.09);
+  transition: background 0.18s;
+}
+.register-btn:hover {
+  background: #2a2c36;
+}
+
+.register-msg {
+  margin-top: 10px;
+  text-align: center;
+  color: #993333;
+  font-size: 0.96rem;
+}
+
+.register-or {
+  text-align: center;
+  margin-top: 20px;
+  color: #23233b;
+  font-size: 0.95rem;
+}
+.register-or a {
+  color: #5732a3;
+  font-weight: 600;
+  text-decoration: none;
+}
+.register-or a:hover {
+  text-decoration: underline;
+}
