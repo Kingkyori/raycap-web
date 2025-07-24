@@ -1,169 +1,208 @@
+/* === GLOBAL & BACKGROUND === */
+/* Atur tampilan seluruh halaman agar memiliki background lembut dan font modern */
 body, .profile-bg {
   min-height: 100vh;
-  background: linear-gradient(135deg, #eef4fa 75%, #e3edfc 100%);
+  background: linear-gradient(135deg, #e8f1fb 70%, #dfeeff);
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* --- CONTAINER --- */
 .profile-bg {
-  min-height: 100vh;
-  width: 100vw;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding-top: 40px;
-  /* responsive fallback */
 }
 
-/* --- CARD --- */
+/* === KONTAINER UTAMA PROFIL === */
+/* Tampilan kotak putih utama tempat form dan avatar */
 .profile-container {
-  max-width: 410px;
   width: 100%;
-  background: #fff;
-  border-radius: 28px;
-  box-shadow: 0 8px 32px #b6c7ee26, 0 1.5px 7px #bdd7fa18;
-  padding: 46px 32px 34px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: box-shadow 0.22s;
-  margin: 54px auto 32px auto;
-  animation: fadeInUp 0.7s cubic-bezier(.34,1.56,.64,1) both;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px 28px;
+  box-shadow: 0 6px 20px rgba(0, 38, 99, 0.06);
+  animation: fadeInUp 0.6s ease forwards;
+  margin: 60px auto;
+  color: #1d1d1f;
 }
+
+/* Efek animasi masuk saat halaman dimuat */
 @keyframes fadeInUp {
   from { transform: translateY(30px); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-.profile-container:hover {
-  box-shadow: 0 16px 52px #b8d6f633, 0 2px 12px #bdd7fa22;
+  to { transform: translateY(0); opacity: 1; }
 }
 
-/* --- TITLE --- */
+/* === JUDUL HALAMAN PROFIL === */
 .profile-title {
-  font-size: 1.28rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: #4681f6;
-  margin-bottom: 8px;
-  letter-spacing: 0.3px;
   text-align: center;
+  margin-bottom: 25px;
+  color: #2a4ad4;
 }
 
-/* --- AVATAR --- */
+/* === AVATAR SECTION === */
+/* Tempat foto profil dan tombol hapus/upload */
 .profile-avatar-section {
-  margin: 18px 0 14px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-.profile-avatar-img {
-  width: 104px; height: 104px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #c9e2fd;
-  box-shadow: 0 2px 13px #dbeafe77;
-  background: #f5f9ff;
-  margin-bottom: 12px;
-  transition: box-shadow 0.2s, border 0.18s;
-}
-.profile-avatar-img:hover {
-  box-shadow: 0 4px 24px #b6d6f644;
-  border-color: #4681f6;
-}
-.profile-avatar-btn {
-  padding: 8px 20px;
-  border-radius: 14px;
-  border: none;
-  background: #4681f6;
-  color: #fff;
-  font-weight: 500;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-bottom: 8px;
-  margin-top: 2px;
-  transition: background 0.16s, box-shadow 0.16s;
-  box-shadow: 0 1px 7px #c6e1ff33;
-}
-.profile-avatar-btn:hover {
-  background: #2464bb;
+  margin-bottom: 24px;
 }
 
-/* --- FORM --- */
+/* Gaya untuk gambar avatar bulat */
+.profile-avatar-img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #a9d2ff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #f5faff;
+  margin-bottom: 10px;
+}
+
+/* Gaya tombol upload/hapus avatar dan QRIS */
+.profile-avatar-btn {
+  padding: 8px 20px;
+  background-color: #3f7eff;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(63, 126, 255, 0.2);
+}
+
+.profile-avatar-btn:hover {
+  background-color: #245dd8;
+  transform: scale(1.03);
+}
+
+/* === FORM PROFIL === */
+/* Form nama, username, email */
 .profile-form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 14px;
 }
+
+/* Label setiap input */
 .profile-label {
-  color: #4681f6;
-  font-size: 0.97rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 2px;
-  margin-left: 2px;
-  letter-spacing: 0.02em;
+  color: #2e2e2e;
+  margin-bottom: 4px;
 }
-.profile-input, .profile-input[disabled] {
-  border: 1.5px solid #dde6f7;
-  border-radius: 12px;
-  font-size: 1.07rem;
-  padding: 10px 13px;
-  background: #f7fafd;
-  color: #24292f;
-  font-weight: 500;
-  margin-bottom: 2px;
-  transition: border 0.17s, background 0.14s;
-  box-sizing: border-box;
+
+/* Input field untuk nama dan username */
+.profile-input {
+  padding: 11px 14px;
+  font-size: 0.97rem;
+  border-radius: 10px;
+  border: 1.5px solid #c5d4eb;
+  background: #f9fcff;
+  color: #1f1f1f;
+  margin-bottom: 16px;
+  outline: none;
+  transition: border 0.2s, background 0.2s;
 }
+
+/* Saat input fokus */
 .profile-input:focus {
   border-color: #4681f6;
-  outline: none;
-  background: #eef4fa;
+  background: #f0f6ff;
 }
+
+/* Input email yang disabled */
 .profile-input[disabled] {
-  color: #adb2bd;
-  background: #f0f6fd;
+  background: #eef1f6;
+  color: #999;
   cursor: not-allowed;
 }
 
+/* Tombol simpan perubahan */
 .profile-save-btn {
-  margin-top: 11px;
-  padding: 13px 0;
-  border: none;
-  border-radius: 14px;
-  background: #38b000;
-  color: #fff;
-  font-size: 1.08rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 10px #b9f7c726;
-  transition: background 0.17s, transform 0.13s;
-}
-.profile-save-btn:hover {
-  background: #228900;
-  transform: translateY(-1px) scale(1.015);
-}
-
-/* --- Info & Error Message --- */
-.profile-msg {
-  margin-top: 8px;
-  text-align: center;
+  margin-top: 10px;
+  padding: 12px;
   font-size: 1rem;
-  font-weight: 500;
-  color: #4681f6;
-}
-.profile-msg.error {
-  color: #ea2222;
-}
-.profile-msg.success {
-  color: #33b300;
+  font-weight: bold;
+  color: white;
+  background-color: #26b338;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
+  box-shadow: 0 3px 12px rgba(38, 179, 56, 0.2);
 }
 
-/* --- RESPONSIVE --- */
+.profile-save-btn:hover {
+  background-color: #19922c;
+  transform: scale(1.02);
+}
+
+/* === TAMPILAN QRIS === */
+/* Gambar QRIS */
+.profile-qris-img {
+  width: 130px;
+  border-radius: 10px;
+  border: 2px solid #c9d8f0;
+  background: #fefeff;
+  padding: 6px;
+  margin-bottom: 10px;
+  object-fit: contain;
+}
+
+/* === PESAN ERROR === */
+.profile-msg {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #e53935;
+}
+
+/* === MODAL CROP FIX === */
+/* Supaya modal crop tampil di atas semua elemen */
+.ReactModal__Overlay {
+  z-index: 9999 !important;
+}
+
+/* === CROP CONTAINER === */
+/* Area cropping gambar */
+.cropper-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 300px;
+  background-color: #f0f0f0;
+  border: 2px dashed #4681f6;
+  margin: 0 auto 20px auto;
+}
+
+/* Gaya box crop */
+.cropper-crop-box,
+.cropper-view-box {
+  outline: 2px solid #38b000;
+  outline-color: rgba(0, 0, 0, 0.75);
+  border: none;
+}
+
+/* === RESPONSIVE MODE === */
+/* Optimalkan tampilan di HP */
 @media (max-width: 600px) {
   .profile-container {
-    max-width: 98vw;
-    padding: 19px 5vw 13px 5vw;
-    margin: 20px auto;
+    padding: 28px 20px;
+    margin: 30px auto;
   }
-  .profile-avatar-img { width: 74px; height: 74px; }
+  .profile-avatar-img {
+    width: 84px;
+    height: 84px;
+  }
+  .profile-save-btn {
+    font-size: 0.95rem;
+  }
 }
