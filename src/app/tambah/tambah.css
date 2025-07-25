@@ -42,6 +42,7 @@ form button[type="submit"],
   font-size: 16px;
   margin-top: 20px;
   cursor: pointer;
+  width: 100%;
 }
 form button:hover,
 .btn-simpan-tambah:hover {
@@ -93,6 +94,31 @@ form button:hover,
   justify-content: center;
 }
 
+/* RESPONSIVE MOBILE */
+@media (max-width: 768px) {
+  .form-nota-wrapper {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+  
+  .tambah-form {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .nota-wrapper {
+    align-items: center;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .nota-buttons {
+    align-self: center;
+    justify-content: center;
+  }
+}
+
 /* NOTA BOX */
 .nota-box {
   width: 100%;
@@ -104,6 +130,14 @@ form button:hover,
   font-size: 14px;
   font-weight: 600;
   color: #000;
+}
+
+/* RESPONSIVE NOTA BOX */
+@media (max-width: 768px) {
+  .nota-box {
+    max-width: 100%;
+    margin: 0 auto;
+  }
 }
 .nota-box p {
   margin: 4px 0;
@@ -129,6 +163,14 @@ form button:hover,
 .nota-total span {
   white-space: nowrap;
 }
+.nota-note {
+  font-size: 13px;
+  text-align: left;
+  padding: 4px 0;
+  word-wrap: break-word;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
 
 /* QRIS */
 .qris-box {
@@ -147,6 +189,12 @@ form button:hover,
 }
 
 /* CETAK */
+.nota-buttons {
+  display: flex;
+  gap: 8px;
+  align-self: flex-end;
+  margin-bottom: 8px;
+}
 .btn-cetak-nota {
   background-color: #4681f6;
   color: white;
@@ -156,8 +204,38 @@ form button:hover,
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  align-self: flex-end;
 }
 .btn-cetak-nota:hover {
   background-color: #356be5;
+}
+.btn-reset-nota {
+  background-color: #e74c3c;
+  color: white;
+  font-weight: 600;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn-reset-nota:hover {
+  background-color: #c0392b;
+}
+
+/* RESPONSIVE BUTTONS */
+@media (max-width: 768px) {
+  .nota-buttons {
+    flex-direction: row;
+    gap: 12px;
+    align-self: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .btn-cetak-nota,
+  .btn-reset-nota {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 20px;
+  }
 }

@@ -7,6 +7,69 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Loading state */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f3f6fc;
+  color: #4681f6;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e3f2fd;
+  border-top: 4px solid #4681f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Styling untuk data tersembunyi */
+.baris-tersembunyi {
+  opacity: 0.6;
+  background-color: #f8f9fa !important;
+}
+
+.badge-tersembunyi {
+  display: inline-block;
+  background-color: #6c757d;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.btn-restore {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-restore:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
 /* Sidebar */
 .sidebar {
   width: 250px;
@@ -171,10 +234,222 @@
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 .btn-mau-habis:hover {
   background-color: #ef4444; /* merah lebih gelap saat hover */
+  transform: translateY(-1px);
+}
+
+.btn-mau-habis.active {
+  background-color: #dc2626; /* merah lebih gelap untuk active */
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ================= MODAL EDIT ================= */
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.edit-modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.edit-modal-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.edit-modal-body {
+  padding: 24px;
+}
+
+.form-row {
+  margin-bottom: 16px;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4681f6;
+  box-shadow: 0 0 0 3px rgba(70, 129, 246, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.catatan-cell {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catatan-cell span {
+  cursor: help;
+}
+
+.form-group {
+  display: flex;
+  gap: 8px;
+}
+
+.duration-input {
+  flex: 2;
+}
+
+.duration-select {
+  flex: 1;
+}
+
+.edit-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-cancel, .btn-save {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-save {
+  background: #4681f6;
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #3b72f3;
+}
+
+.btn-save:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .edit-modal-overlay {
+    padding: 10px;
+  }
+  
+  .edit-modal {
+    max-width: none;
+    width: 100%;
+    max-height: 95vh;
+  }
+  
+  .edit-modal-header,
+  .edit-modal-body,
+  .edit-modal-footer {
+    padding: 16px 20px;
+  }
+  
+  .form-group {
+    flex-direction: column;
+  }
+  
+  .duration-input,
+  .duration-select {
+    flex: none;
+  }
 }
