@@ -20,66 +20,85 @@ export default function RegisterPage() {
     setMsg('');
     setLoading(true);
 
-    // 1. Cek username/email di tabel admins
-    const { data: userCheck, error: checkError } = await supabase
-      .from('admins')
-      .select('id')
-      .or(`username.eq.${form.username},email.eq.${form.email}`);
-    if (checkError) {
-      setMsg("Supabase error: " + checkError.message);
+    try {
+      // Validasi input
+      if (!form.name || !form.username || !form.email || !form.password) {
+        setMsg("Semua field harus diisi!");
+        return;
+      }
+
+      if (form.password.length < 6) {
+        setMsg("Password minimal 6 karakter!");
+        return;
+      }
+
+      if (!form.email.includes('@')) {
+        setMsg("Format email tidak valid!");
+        return;
+      }
+
+      // 1. Cek username/email di tabel admins
+      const { data: userCheck, error: checkError } = await supabase
+        .from('admins')
+        .select('id')
+        .or(`username.eq.${form.username.trim()},email.eq.${form.email.trim()}`);
+        
+      if (checkError) {
+        setMsg("Database error: " + checkError.message);
+        return;
+      }
+      
+      if (userCheck && userCheck.length > 0) {
+        setMsg("Username atau email sudah digunakan!");
+        return;
+      }
+
+      // 2. Daftar ke Supabase Auth
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: form.email.trim(),
+        password: form.password,
+      });
+
+      if (authError) {
+        if (authError.message.includes('User already registered')) {
+          setMsg("Email sudah terdaftar di sistem!");
+        } else {
+          setMsg("Auth error: " + authError.message);
+        }
+        return;
+      }
+
+      // 3. Insert ke tabel admins (pakai user.id dari Auth)
+      let userId = data.user?.id || data.session?.user?.id;
+      if (!userId) {
+        setMsg("Tidak dapat mengambil user ID dari hasil signup!");
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from('admins')
+        .insert([{
+          id: userId,
+          name: form.name.trim(),
+          username: form.username.trim(),
+          email: form.email.trim(),
+          created_at: new Date().toISOString(),
+        }]);
+
+      if (insertError) {
+        setMsg("Database error: " + insertError.message);
+        return;
+      }
+
+      setMsg("Berhasil daftar! Silakan kembali ke halaman login.");
+      setTimeout(() => window.location.href = "/login", 2000);
+
+    } catch (err) {
+      console.error('Register error:', err);
+      setMsg("Terjadi kesalahan sistem");
+    } finally {
       setLoading(false);
-      console.error("Supabase SELECT error:", checkError);
-      return;
     }
-    if (userCheck && userCheck.length > 0) {
-      setMsg("Username/email sudah dipakai!");
-      setLoading(false);
-      return;
-    }
-
-    // 2. Daftar ke Supabase Auth
-    const { data, error: authError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-    });
-
-    if (authError) {
-      setMsg("Auth error: " + authError.message);
-      setLoading(false);
-      console.error("Supabase AUTH error:", authError);
-      return;
-    }
-
-    // 3. Insert ke tabel admins (pakai user.id dari Auth)
-    let userId = data.user?.id || data.session?.user?.id;
-    if (!userId) {
-      setMsg("Tidak dapat mengambil user ID dari hasil signup!");
-      setLoading(false);
-      console.error("Auth response, no userId:", data);
-      return;
-    }
-
-    const { error: insertError } = await supabase
-      .from('admins')
-      .insert([{
-        id: userId,
-        name: form.name,
-        username: form.username,
-        email: form.email,
-        created_at: new Date().toISOString(),
-      }]);
-
-    if (insertError) {
-      setMsg("Database error: " + insertError.message);
-      setLoading(false);
-      console.error("Supabase INSERT error:", insertError);
-      return;
-    }
-
-    setMsg("Berhasil daftar! Silakan cek email untuk verifikasi akun.");
-    setLoading(false);
-
-    setTimeout(() => window.location.href = "/login", 2000);
   };
 
   return (

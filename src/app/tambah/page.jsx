@@ -84,44 +84,86 @@ export default function TambahPage() {
   }
 
   const calculateTanggalSelesai = (mulai, jenis, total) => {
-    if (!mulai || !jenis || !total) return null
+    if (!mulai || !jenis) return null
+    if (jenis === 'lifetime') return '2099-12-31'
+    if (!total || total <= 0) return null
+    
     const date = new Date(mulai)
+    const totalNum = parseInt(total)
+    
     switch (jenis) {
-      case 'hari': date.setDate(date.getDate() + total); break
-      case 'minggu': date.setDate(date.getDate() + total * 7); break
-      case 'bulan': date.setMonth(date.getMonth() + total); break
-      case 'tahun': date.setFullYear(date.getFullYear() + total); break
-      case 'lifetime': return '2099-12-31'
+      case 'hari': 
+        date.setDate(date.getDate() + totalNum)
+        break
+      case 'minggu': 
+        date.setDate(date.getDate() + (totalNum * 7))
+        break
+      case 'bulan': 
+        date.setMonth(date.getMonth() + totalNum)
+        break
+      case 'tahun': 
+        date.setFullYear(date.getFullYear() + totalNum)
+        break
+      default:
+        return null
     }
     return date.toISOString().split('T')[0]
   }
 
   const handleSubmit = async e => {
     e.preventDefault()
-    if (!user) return
+    if (!user) {
+      setMsg('❌ Pengguna tidak terautentikasi')
+      return
+    }
     
-    // Untuk lifetime, set durasi_total ke 0 atau 1
-    const durasiTotal = form.durasi_jenis === 'lifetime' ? 1 : parseInt(form.durasi_total)
-    const tanggal_selesai = calculateTanggalSelesai(form.tanggal_mulai, form.durasi_jenis, durasiTotal)
+    // Validasi form
+    if (!form.aplikasi_id || !form.nomor_telepon || !form.jumlah_order || 
+        !form.durasi_jenis || !form.harga_beli || !form.harga_jual || !form.tanggal_mulai) {
+      setMsg('❌ Harap lengkapi semua field yang diperlukan')
+      return
+    }
     
-    const { error } = await supabase.from('penjualan').insert([{
-      user_id: user.id,
-      aplikasi_id: form.aplikasi_id,
-      jumlah_order: parseInt(form.jumlah_order),
-      harga_beli: parseInt(form.harga_beli),
-      harga_jual: parseInt(form.harga_jual),
-      tanggal_mulai: form.tanggal_mulai,
-      tanggal_selesai,
-      nomor_telepon: form.nomor_telepon,
-      durasi_jenis: form.durasi_jenis,
-      durasi_total: durasiTotal,
-      note: form.note
-    }])
+    // Validasi durasi_total untuk non-lifetime
+    if (form.durasi_jenis !== 'lifetime' && (!form.durasi_total || form.durasi_total <= 0)) {
+      setMsg('❌ Durasi total harus diisi untuk jenis durasi selain lifetime')
+      return
+    }
+    
+    try {
+      // Untuk lifetime, set durasi_total ke 1
+      const durasiTotal = form.durasi_jenis === 'lifetime' ? 1 : parseInt(form.durasi_total)
+      const tanggal_selesai = calculateTanggalSelesai(form.tanggal_mulai, form.durasi_jenis, durasiTotal)
+      
+      if (!tanggal_selesai) {
+        setMsg('❌ Gagal menghitung tanggal selesai')
+        return
+      }
+      
+      const { error } = await supabase.from('penjualan').insert([{
+        user_id: user.id,
+        aplikasi_id: parseInt(form.aplikasi_id),
+        jumlah_order: parseInt(form.jumlah_order),
+        harga_beli: parseInt(form.harga_beli),
+        harga_jual: parseInt(form.harga_jual),
+        tanggal_mulai: form.tanggal_mulai,
+        tanggal_selesai,
+        nomor_telepon: form.nomor_telepon,
+        durasi_jenis: form.durasi_jenis,
+        durasi_total: durasiTotal,
+        note: form.note || ''
+      }])
 
-    if (error) setMsg('❌ Gagal menyimpan data.')
-    else {
-      setMsg('✅ Data berhasil disimpan!')
-      setShowNota(true)
+      if (error) {
+        console.error('Database error:', error)
+        setMsg('❌ Gagal menyimpan data: ' + error.message)
+      } else {
+        setMsg('✅ Data berhasil disimpan!')
+        setShowNota(true)
+      }
+    } catch (err) {
+      console.error('Submit error:', err)
+      setMsg('❌ Terjadi kesalahan saat menyimpan data')
     }
   }
 
@@ -184,7 +226,7 @@ export default function TambahPage() {
           <form onSubmit={handleSubmit} className="tambah-form">
             <div className="input-wrapper">
               <label htmlFor="aplikasi_id">Nama Aplikasi</label>
-              <select className="input" name="aplikasi_id" value={form.aplikasi_id} onChange={handleChange} required>
+              <select className="input" id="aplikasi_id" name="aplikasi_id" value={form.aplikasi_id} onChange={handleChange} required>
                 <option value="">-- Pilih Aplikasi --</option>
                 {aplikasiList.map(app => (
                   <option key={app.id} value={app.id}>{app.nama_aplikasi}</option>
@@ -201,7 +243,7 @@ export default function TambahPage() {
 
             <div className="input-wrapper">
               <label htmlFor="durasi_jenis">Durasi</label>
-              <select className="input" name="durasi_jenis" value={form.durasi_jenis} onChange={handleChange} required>
+              <select className="input" id="durasi_jenis" name="durasi_jenis" value={form.durasi_jenis} onChange={handleChange} required>
                 <option value="">-- Pilih Durasi --</option>
                 <option value="hari">Hari</option>
                 <option value="minggu">Minggu</option>

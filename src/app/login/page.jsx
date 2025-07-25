@@ -20,27 +20,45 @@ export default function LoginCard() {
     setMsg('')
     setLoading(true)
 
-    // Cek login via email atau username
-    let email = form.username
-    if (!email.includes('@')) {
-      setMsg('Gunakan email untuk login')
-      setLoading(false)
-      return
-    }
-    // Supabase login
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: form.password,
-    })
+    try {
+      // Validasi input
+      if (!form.username || !form.password) {
+        setMsg('Email dan password harus diisi')
+        return
+      }
 
-    setLoading(false)
-    if (error) {
-      setMsg('Email atau password salah!')
-    } else {
-      setMsg('Berhasil login!')
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 800) // Biar notif sempat kelihatan
+      // Cek login via email atau username
+      let email = form.username.trim()
+      if (!email.includes('@')) {
+        setMsg('Gunakan email untuk login')
+        return
+      }
+
+      // Supabase login
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: form.password,
+      })
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          setMsg('Email atau password salah!')
+        } else if (error.message.includes('Email not confirmed')) {
+          setMsg('Silakan cek email Anda untuk verifikasi akun')
+        } else {
+          setMsg('Terjadi kesalahan saat login: ' + error.message)
+        }
+      } else {
+        setMsg('Berhasil login!')
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 500)
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      setMsg('Terjadi kesalahan sistem')
+    } finally {
+      setLoading(false)
     }
   }
 

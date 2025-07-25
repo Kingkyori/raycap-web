@@ -49,6 +49,8 @@ export default function HistoryPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [errorMsg, setErrorMsg] = useState('')
   const [editModal, setEditModal] = useState(false)
   const [editData, setEditData] = useState(null)
   const [editForm, setEditForm] = useState({
@@ -105,7 +107,6 @@ export default function HistoryPage() {
 
         // Get admin data untuk mendapatkan ID admin
         const email = session.session.user.email
-        console.log('🔍 Looking for admin with email:', email)
         
         const { data: admin, error: adminError } = await supabase
           .from('admins')
@@ -113,77 +114,31 @@ export default function HistoryPage() {
           .eq('email', email)
           .single()
 
-        console.log('📊 Admin query result:', { admin, adminError })
-        console.log('📊 Admin ID from result:', admin?.id)
-
         if (!admin) {
-          console.log('❌ Admin not found for email:', email)
-          
-          // Cek semua admin yang ada di database
-          const { data: allAdmins } = await supabase
-            .from('admins')
-            .select('id, email')
-          console.log('📋 All admins in database:', allAdmins)
-          
-          if (mounted) setLoading(false)
+          if (mounted) {
+            setErrorMsg('Admin tidak ditemukan')
+            setLoading(false)
+          }
           return
         }
 
-        // Fetch data dengan query yang sama seperti dashboard
-        console.log('🎯 Fetching penjualan data for admin ID:', admin.id)
-        
+        if (!mounted) return
+        setProfile(admin)
+
+        // Fetch penjualan data dengan join ke aplikasi_premium
         const { data: penjualanData, error } = await supabase
           .from('penjualan')
           .select('*, aplikasi_premium(nama_aplikasi)')
           .eq('user_id', admin.id)
           .order('created_at', { ascending: false })
 
-        console.log('📈 Penjualan query result:')
-        console.log('- Data:', penjualanData)
-        console.log('- Error:', error)
-        console.log('- Admin ID used in query:', admin.id)
-        console.log('- Data length:', penjualanData?.length || 0)
-
         if (!mounted) return
 
-        if (!error && penjualanData) {
-          console.log('✅ Found data for user:', penjualanData.length, 'items')
+        if (penjualanData && !error) {
           setData(penjualanData)
         } else {
-          console.log('⚠️ No data found for user ID:', admin.id, 'Error:', error)
-          
-          // Debug: Cek semua data tanpa filter user_id
-          const { data: allData, error: allError } = await supabase
-            .from('penjualan')
-            .select('*, aplikasi_premium(nama_aplikasi)')
-            .order('created_at', { ascending: false })
-          
-          console.log('🔍 All data in penjualan table:')
-          console.log('- Total records:', allData?.length || 0)
-          console.log('- Error:', allError)
-          
-          if (allData && allData.length > 0) {
-            console.log('📋 First 3 records with user_id info:')
-            allData.slice(0, 3).forEach((item, index) => {
-              console.log(`Record ${index + 1}:`, {
-                id: item.id,
-                user_id: item.user_id,
-                aplikasi: item.aplikasi_premium?.nama_aplikasi
-              })
-            })
-            
-            // Cek apakah ada data dengan user_id yang berbeda
-            const uniqueUserIds = [...new Set(allData.map(item => item.user_id))]
-            console.log('🔑 Unique user_ids in database:', uniqueUserIds)
-            console.log('🎯 Current admin.id:', admin.id)
-            
-            // Untuk debugging, tampilkan semua data (sementara)
-            console.log('⚠️ Displaying all data temporarily for debugging')
-            setData(allData)
-          } else {
-            console.log('❌ No data found in penjualan table at all')
-            setData([])
-          }
+          console.error('Error fetching penjualan data:', error)
+          setData([])
         }
 
         // Fetch aplikasi list untuk dropdown edit
