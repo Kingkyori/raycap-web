@@ -23,6 +23,7 @@ export default function Profile() {
   const [cropModalOpen, setCropModalOpen] = useState(false)
   const [cropImage, setCropImage] = useState(null)
   const [cropType, setCropType] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
   const cropperRef = useRef()
   const fileInput = useRef()
   const qrisInput = useRef()
@@ -35,6 +36,14 @@ export default function Profile() {
   // Optimized auth check dan fetch profile
   useEffect(() => {
     let mounted = true
+
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 600)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
 
     const fetchProfile = async () => {
       try {
@@ -87,6 +96,7 @@ export default function Profile() {
 
     return () => {
       mounted = false
+      window.removeEventListener('resize', checkMobile)
     }
   }, [router])
 
@@ -490,19 +500,28 @@ export default function Profile() {
         contentLabel="Crop Image"
         ariaHideApp={false}
         style={{
-          overlay: { zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.75)' },
+          overlay: { 
+            zIndex: 9999, 
+            backgroundColor: 'rgba(0,0,0,0.75)',
+            padding: isMobile ? '5px' : '10px',
+            display: 'flex',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'center'
+          },
           content: {
-            width: '95%', 
-            maxWidth: 550, 
-            margin: 'auto', 
-            borderRadius: 16, 
-            padding: 24, 
-            height: 'auto',
-            maxHeight: '90vh',
+            width: isMobile ? '100%' : '95%', 
+            maxWidth: isMobile ? 'none' : '550px', 
+            height: isMobile ? '100vh' : 'auto',
+            maxHeight: isMobile ? '100vh' : '95vh',
+            margin: isMobile ? '0' : 'auto', 
+            borderRadius: isMobile ? 0 : 16, 
+            padding: isMobile ? '10px' : 24, 
             border: 'none',
             overflow: 'auto',
             background: 'linear-gradient(135deg, #ffffff 0%, #fafbff 100%)',
-            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)'
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+            position: 'relative',
+            inset: isMobile ? '0' : 'auto'
           }
         }}
       >
@@ -530,17 +549,17 @@ export default function Profile() {
             <Cropper
               src={cropImage}
               style={{ 
-                height: 320, 
+                height: isMobile ? 250 : 320, 
                 width: '100%', 
                 marginBottom: '15px',
-                borderRadius: '12px',
+                borderRadius: isMobile ? '8px' : '12px',
                 overflow: 'hidden'
               }}
               guides={true}
               ref={cropperRef}
               viewMode={1}
               dragMode="move"
-              autoCropArea={0.75}
+              autoCropArea={isMobile ? 0.95 : 0.75}
               background={false}
               responsive={true}
               checkOrientation={false}
@@ -551,6 +570,8 @@ export default function Profile() {
               zoomable={true}
               scalable={true}
               rotatable={false}
+              minCropBoxHeight={30}
+              minCropBoxWidth={30}
             />
           )}
         </div>

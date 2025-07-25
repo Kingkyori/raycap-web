@@ -371,6 +371,88 @@ body, .profile-bg {
   .profile-save-btn {
     font-size: 0.95rem;
   }
+  
+  /* Fix crop modal di mobile - fullscreen approach */
+  .ReactModal__Overlay {
+    padding: 0 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+  
+  .ReactModal__Content {
+    width: 100% !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    border-radius: 0 !important;
+    inset: 0 !important;
+    position: fixed !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Crop container mobile - smaller and more manageable */
+  .cropper-container {
+    max-width: 100% !important;
+    height: 250px !important;
+    margin: 0 auto 10px auto !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Crop instructions mobile */
+  .crop-instructions {
+    font-size: 0.8rem !important;
+    padding: 8px 10px !important;
+    margin-bottom: 10px !important;
+    line-height: 1.3 !important;
+  }
+  
+  /* Modal header mobile */
+  .crop-modal-header {
+    margin-bottom: 12px !important;
+    padding-bottom: 10px !important;
+  }
+  
+  .crop-modal-title {
+    font-size: 1rem !important;
+  }
+  
+  .crop-modal-body {
+    margin-bottom: 15px !important;
+  }
+  
+  /* Modal buttons mobile - full width stacked */
+  .modal-buttons {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: white !important;
+    border-top: 2px solid #e3f2fd !important;
+  }
+  
+  .modal-buttons button {
+    width: 100% !important;
+    padding: 14px 12px !important;
+    min-width: auto !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Ensure cropper elements are touch-friendly */
+  .cropper-point {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .cropper-line {
+    background-color: rgba(70, 129, 246, 0.9) !important;
+  }
 }
 
 /* === OPTIMIZED LOADING STATES === */
