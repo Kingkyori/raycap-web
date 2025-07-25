@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "kyorap - by kannohouse",
+  title: "Raycap - by kannohouse",
   description: "Premium Apps Management System by Kannohouse",
   icons: {
     icon: '/favicon.ico',
