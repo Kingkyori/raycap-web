@@ -87,10 +87,10 @@ export default function TambahPage() {
     if (!mulai || !jenis || !total) return null
     const date = new Date(mulai)
     switch (jenis) {
-      case 'harian': date.setDate(date.getDate() + total); break
-      case 'mingguan': date.setDate(date.getDate() + total * 7); break
-      case 'bulanan': date.setMonth(date.getMonth() + total); break
-      case 'tahunan': date.setFullYear(date.getFullYear() + total); break
+      case 'hari': date.setDate(date.getDate() + total); break
+      case 'minggu': date.setDate(date.getDate() + total * 7); break
+      case 'bulan': date.setMonth(date.getMonth() + total); break
+      case 'tahun': date.setFullYear(date.getFullYear() + total); break
       case 'lifetime': return '2099-12-31'
     }
     return date.toISOString().split('T')[0]
@@ -203,10 +203,10 @@ export default function TambahPage() {
               <label htmlFor="durasi_jenis">Durasi</label>
               <select className="input" name="durasi_jenis" value={form.durasi_jenis} onChange={handleChange} required>
                 <option value="">-- Pilih Durasi --</option>
-                <option value="harian">Hari</option>
-                <option value="mingguan">Minggu</option>
-                <option value="bulanan">Bulan</option>
-                <option value="tahunan">Tahun</option>
+                <option value="hari">Hari</option>
+                <option value="minggu">Minggu</option>
+                <option value="bulan">Bulan</option>
+                <option value="tahun">Tahun</option>
                 <option value="lifetime">Lifetime</option>
               </select>
             </div>
