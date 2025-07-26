@@ -61,8 +61,26 @@ export default function TambahPage() {
       const email = data.session.user.email
       const { data: admin } = await supabase.from('admins').select('*').eq('email', email).single()
       if (admin) setProfile(admin)
-      const { data: apps } = await supabase.from('aplikasi_premium').select('id, nama_aplikasi').order('nama_aplikasi')
-      if (apps) setAplikasiList(apps)
+      
+      // Load aplikasi list dengan error handling
+      try {
+        const { data: apps, error } = await supabase
+          .from('aplikasi_premium')
+          .select('id, nama_aplikasi')
+          .order('nama_aplikasi')
+          
+        if (error) {
+          console.error('Error loading aplikasi:', error)
+          setMsg('❌ Gagal memuat daftar aplikasi: ' + error.message)
+        } else if (apps && apps.length > 0) {
+          setAplikasiList(apps)
+        } else {
+          setMsg('⚠️ Tidak ada aplikasi tersedia')
+        }
+      } catch (err) {
+        console.error('Error:', err)
+        setMsg('❌ Terjadi kesalahan saat memuat aplikasi')
+      }
     })
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) router.push('/login')
@@ -140,9 +158,15 @@ export default function TambahPage() {
         return
       }
       
+      // Validasi aplikasi_id - pastikan ini adalah UUID yang valid, bukan integer
+      if (!form.aplikasi_id || form.aplikasi_id === '0') {
+        setMsg('❌ Harap pilih aplikasi yang valid')
+        return
+      }
+      
       const { error } = await supabase.from('penjualan').insert([{
         user_id: user.id,
-        aplikasi_id: parseInt(form.aplikasi_id),
+        aplikasi_id: form.aplikasi_id, // Kirim sebagai string UUID, jangan di-parseInt
         jumlah_order: parseInt(form.jumlah_order),
         harga_beli: parseInt(form.harga_beli),
         harga_jual: parseInt(form.harga_jual),
@@ -228,10 +252,19 @@ export default function TambahPage() {
               <label htmlFor="aplikasi_id">Nama Aplikasi</label>
               <select className="input" id="aplikasi_id" name="aplikasi_id" value={form.aplikasi_id} onChange={handleChange} required>
                 <option value="">-- Pilih Aplikasi --</option>
-                {aplikasiList.map(app => (
-                  <option key={app.id} value={app.id}>{app.nama_aplikasi}</option>
-                ))}
+                {aplikasiList.length === 0 ? (
+                  <option value="" disabled>Memuat aplikasi...</option>
+                ) : (
+                  aplikasiList.map(app => (
+                    <option key={app.id} value={app.id}>{app.nama_aplikasi}</option>
+                  ))
+                )}
               </select>
+              {aplikasiList.length === 0 && (
+                <small style={{color: '#666', fontSize: '12px', marginTop: '4px'}}>
+                  Jika aplikasi tidak muncul, coba refresh halaman
+                </small>
+              )}
             </div>
 
             {[{ label: 'Nomor Telepon', name: 'nomor_telepon', type: 'tel' }, { label: 'Jumlah Order', name: 'jumlah_order', type: 'number' }].map(item => (
@@ -306,7 +339,7 @@ export default function TambahPage() {
                   <p>Order: {form.nomor_telepon}</p>
                   <p>Kasir: {profile?.name}</p>
                   <p className="nota-sub">=================================</p>
-                  <p>{aplikasiList.find(a => a.id === form.aplikasi_id)?.nama_aplikasi} <span>Rp{parseInt(form.harga_jual).toLocaleString()}</span></p>
+                  <p>{aplikasiList.find(a => a.id === form.aplikasi_id)?.nama_aplikasi || 'Aplikasi tidak ditemukan'} <span>Rp{parseInt(form.harga_jual).toLocaleString()}</span></p>
                   <p>Jumlah: {form.jumlah_order}</p>
                   <p>Durasi: {form.durasi_jenis === 'lifetime' ? 'Lifetime' : `${form.durasi_total} ${form.durasi_jenis}`}</p>
                   <p className="nota-sub">------------------------------</p>
