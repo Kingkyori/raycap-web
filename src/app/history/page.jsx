@@ -46,6 +46,7 @@ export default function HistoryPage() {
   const [data, setData] = useState([])
   const [search, setSearch] = useState('')
   const [filterExpiring, setFilterExpiring] = useState(false)
+  const [sortBy, setSortBy] = useState('all') // 'all', 'today', 'thisMonth'
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
@@ -174,18 +175,36 @@ export default function HistoryPage() {
       const timeDiff = tanggalSelesai.getTime() - now.getTime()
       const diffDays = timeDiff / (1000 * 3600 * 24)
 
+      // Filter berdasarkan pencarian
       const matchSearch = (
         item.aplikasi_premium?.nama_aplikasi?.toLowerCase().includes(search.toLowerCase()) ||
         item.nomor_telepon?.toLowerCase().includes(search.toLowerCase())
       )
 
-      if (filterExpiring) {
-        return matchSearch && diffDays <= 5 && diffDays >= 0
+      // Filter berdasarkan tanggal ditambahkan
+      const createdAt = item.created_at ? new Date(item.created_at) : null
+      const today = new Date()
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const startOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+      let matchDate = true
+      if (sortBy === 'today' && createdAt) {
+        matchDate = createdAt >= startOfToday
+      } else if (sortBy === 'thisMonth' && createdAt) {
+        matchDate = createdAt >= startOfThisMonth
+      } else if ((sortBy === 'today' || sortBy === 'thisMonth') && !createdAt) {
+        // Jika tidak ada created_at dan user pilih filter tanggal, exclude data ini
+        matchDate = false
       }
 
-      return matchSearch
+      // Filter berdasarkan expire soon
+      if (filterExpiring) {
+        return matchSearch && matchDate && diffDays <= 5 && diffDays >= 0
+      }
+
+      return matchSearch && matchDate
     })
-  }, [data, search, filterExpiring])
+  }, [data, search, filterExpiring, sortBy])
 
   // Memoized totals untuk menghindari kalkulasi berulang
   const totals = useMemo(() => {
@@ -369,6 +388,17 @@ export default function HistoryPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          
+          <select 
+            className="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="all">Semua Data</option>
+            <option value="today">Ditambahkan Hari Ini</option>
+            <option value="thisMonth">Ditambahkan Bulan Ini</option>
+          </select>
+          
           <button
             className={`btn-mau-habis ${filterExpiring ? 'active' : ''}`}
             onClick={() => setFilterExpiring(!filterExpiring)}
@@ -380,7 +410,10 @@ export default function HistoryPage() {
         <div className="table-container">
           {/* Debug info */}
           <div style={{ padding: '10px', background: '#f0f0f0', marginBottom: '10px', fontSize: '12px' }}>
-            Debug: Total data = {data.length}, Filtered data = {filteredData.length}
+            Debug: Total data = {data.length}, Filtered data = {filteredData.length} | 
+            Filter: {sortBy === 'all' ? 'Semua Data' : sortBy === 'today' ? 'Hari Ini' : 'Bulan Ini'} | 
+            Search: "{search}" | 
+            Expire Filter: {filterExpiring ? 'ON' : 'OFF'}
           </div>
           
           <table className="tabel-history">
@@ -393,6 +426,7 @@ export default function HistoryPage() {
                 <th>Durasi</th>
                 <th>Tanggal Mulai</th>
                 <th>Tanggal Selesai</th>
+                <th>Ditambahkan</th>
                 <th>Nomor Telepon</th>
                 <th>Catatan</th>
                 <th>Aksi</th>
@@ -401,7 +435,7 @@ export default function HistoryPage() {
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                  <td colSpan="11" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
                     {data.length === 0 ? 'Belum ada data penjualan' : 'Tidak ada data yang sesuai dengan pencarian'}
                   </td>
                 </tr>
@@ -421,6 +455,15 @@ export default function HistoryPage() {
                       <td>{item.durasi_total} {item.durasi_jenis}</td>
                       <td>{item.tanggal_mulai}</td>
                       <td>{item.tanggal_selesai}</td>
+                      <td>
+                        {item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: '2-digit', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : 'Data lama'}
+                      </td>
                       <td>{item.nomor_telepon}</td>
                       <td className="catatan-cell">
                         {item.note ? (
@@ -446,7 +489,7 @@ export default function HistoryPage() {
                 <td>{totals.totalOrder}</td>
                 <td>{formatRupiah(totals.totalBeli)}</td>
                 <td>{formatRupiah(totals.totalJual)}</td>
-                <td colSpan="6"></td>
+                <td colSpan="7"></td>
               </tr>
             </tfoot>
           </table>
