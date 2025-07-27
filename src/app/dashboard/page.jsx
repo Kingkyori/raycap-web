@@ -49,7 +49,7 @@ export default function Dashboard() {
   const [pieData, setPieData] = useState({})
   const [notifikasi, setNotifikasi] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filterPeriode, setFilterPeriode] = useState('bulanan') // harian, bulanan, tahunan
+  const [filterPeriode, setFilterPeriode] = useState('harian') // harian, bulanan, tahunan
   const router = useRouter()
 
   const [totalPemasukan, setTotalPemasukan] = useState(0)
@@ -75,11 +75,12 @@ export default function Dashboard() {
       
       switch (periode) {
         case 'harian':
-          // Data 7 hari terakhir untuk membuat grafik yang bermakna
-          const sevenDaysAgo = new Date(now)
-          sevenDaysAgo.setDate(now.getDate() - 6) // 7 hari termasuk hari ini
-          sevenDaysAgo.setHours(0, 0, 0, 0)
-          return date >= sevenDaysAgo
+          // Data hari ini saja untuk summary cards
+          const today = new Date(now)
+          today.setHours(0, 0, 0, 0)
+          const tomorrow = new Date(today)
+          tomorrow.setDate(today.getDate() + 1)
+          return date >= today && date < tomorrow
         case 'bulanan':
           // Data bulan ini
           return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
@@ -89,6 +90,29 @@ export default function Dashboard() {
         default:
           return true
       }
+    })
+    
+    return filtered
+  }
+
+  // Fungsi terpisah untuk filter data grafik harian (7 hari terakhir)
+  const filterDataForGrafik = (penjualan, periode) => {
+    if (periode !== 'harian') {
+      return filterDataByPeriode(penjualan, periode)
+    }
+    
+    // Khusus untuk grafik harian, gunakan 7 hari terakhir
+    const now = new Date()
+    const filtered = penjualan.filter(d => {
+      if (!d.created_at) return false
+      
+      const date = new Date(d.created_at)
+      if (isNaN(date.getTime())) return false
+      
+      const sevenDaysAgo = new Date(now)
+      sevenDaysAgo.setDate(now.getDate() - 6)
+      sevenDaysAgo.setHours(0, 0, 0, 0)
+      return date >= sevenDaysAgo
     })
     
     return filtered
@@ -204,8 +228,8 @@ export default function Dashboard() {
         setTopApp(Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] || '-')
         setPieData(count)
         
-        // Generate grafik data berdasarkan filter periode
-        const grafikData = generateGrafikData(filteredData, filterPeriode)
+        // Generate grafik data berdasarkan filter periode - gunakan fungsi khusus untuk grafik
+        const grafikData = generateGrafikData(filterDataForGrafik(filteredData, filterPeriode), filterPeriode)
         setGrafik(grafikData)
 
         // Notifikasi masa aktif
@@ -264,13 +288,18 @@ export default function Dashboard() {
   // Update semua data saat filter periode berubah
   useEffect(() => {
     if (data.length > 0) {
+      console.log('Filter changed to:', filterPeriode)
+      
       // Filter data berdasarkan periode yang dipilih
       const filteredData = filterDataByPeriode(data, filterPeriode)
+      console.log('Filtered data count:', filteredData.length)
 
       // Update kalkulasi data
       const pemasukan = filteredData.reduce((acc, d) => acc + (d.harga_jual || 0), 0)
       const modal = filteredData.reduce((acc, d) => acc + (d.harga_beli || 0), 0)
       const keuntungan = pemasukan - modal
+
+      console.log('Updated values:', { pemasukan, modal, keuntungan })
 
       setTotalPemasukan(pemasukan)
       setTotalModal(modal)
@@ -286,8 +315,8 @@ export default function Dashboard() {
       setTopApp(Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] || '-')
       setPieData(count)
 
-      // Update grafik data
-      const grafikData = generateGrafikData(filteredData, filterPeriode)
+      // Update grafik data - gunakan fungsi khusus untuk grafik
+      const grafikData = generateGrafikData(filterDataForGrafik(data, filterPeriode), filterPeriode)
       setGrafik(grafikData)
     }
   }, [filterPeriode, data])  // LINE CHART dengan error handling
@@ -516,6 +545,15 @@ export default function Dashboard() {
       default: return 'Grafik Pemasukan'
     }
   }
+
+  const getPeriodeLabel = () => {
+    switch (filterPeriode) {
+      case 'harian': return '(Hari Ini)'
+      case 'bulanan': return '(Bulan Ini)'
+      case 'tahunan': return '(Tahun Ini)'
+      default: return ''
+    }
+  }
   
   const nama = user?.user_metadata?.name || profile?.name || user?.email?.split('@')[0]
   const ucapan = nama?.charAt(0).toUpperCase() + nama?.slice(1)
@@ -561,19 +599,19 @@ export default function Dashboard() {
       <main className="dashboard-main">
         <div className="dashboard-cards">
           <div className="card">
-            <h4>Total Pemasukan</h4>
+            <h4>Total Pemasukan {getPeriodeLabel()}</h4>
             <p className="value">Rp {totalPemasukan.toLocaleString()}</p>
           </div>
           <div className="card">
-            <h4>Total Keuntungan</h4>
+            <h4>Total Keuntungan {getPeriodeLabel()}</h4>
             <p className="value">Rp {totalKeuntungan.toLocaleString()}</p>
           </div>
           <div className="card">
-            <h4>Total Modal</h4>
+            <h4>Total Modal {getPeriodeLabel()}</h4>
             <p className="value">Rp {totalModal.toLocaleString()}</p>
           </div>
           <div className="card">
-            <h4>Aplikasi Terlaris</h4>
+            <h4>Aplikasi Terlaris {getPeriodeLabel()}</h4>
             <p className="value">{topApp}</p>
           </div>
         </div>
@@ -608,7 +646,8 @@ export default function Dashboard() {
             <h4>{getGrafikTitle()}</h4>
             {/* Debug info - hapus ini setelah masalah teratasi */}
             <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
-              Debug: Total data = {data.length}, Filtered data = {filterDataByPeriode(data, filterPeriode).length}, 
+              Debug: Total data = {data.length}, Summary data = {filterDataByPeriode(data, filterPeriode).length}, 
+              Grafik data = {filterDataForGrafik(data, filterPeriode).length}, 
               Periode = {filterPeriode}, Grafik keys = {Object.keys(grafik).length}
             </div>
             <div style={{ position: 'relative', height: '200px', width: '100%' }}>
