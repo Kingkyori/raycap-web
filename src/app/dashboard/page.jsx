@@ -66,12 +66,20 @@ export default function Dashboard() {
   const filterDataByPeriode = (penjualan, periode) => {
     const now = new Date()
     const filtered = penjualan.filter(d => {
+      // Pastikan created_at ada dan valid
+      if (!d.created_at) return false
+      
       const date = new Date(d.created_at)
+      // Pastikan date valid
+      if (isNaN(date.getTime())) return false
       
       switch (periode) {
         case 'harian':
-          // Data hari ini
-          return date.toDateString() === now.toDateString()
+          // Data 7 hari terakhir untuk membuat grafik yang bermakna
+          const sevenDaysAgo = new Date(now)
+          sevenDaysAgo.setDate(now.getDate() - 6) // 7 hari termasuk hari ini
+          sevenDaysAgo.setHours(0, 0, 0, 0)
+          return date >= sevenDaysAgo
         case 'bulanan':
           // Data bulan ini
           return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
@@ -90,14 +98,31 @@ export default function Dashboard() {
   const generateGrafikData = (penjualan, periode) => {
     const data = {}
     
+    if (periode === 'harian') {
+      // Untuk grafik harian, buat 7 hari terakhir dengan nilai 0 terlebih dahulu
+      const now = new Date()
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now)
+        date.setDate(now.getDate() - i)
+        const key = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`
+        data[key] = 0
+      }
+    }
+    
     penjualan.forEach(d => {
+      // Skip jika tidak ada created_at atau tidak valid
+      if (!d.created_at) return
+      
       let key
       const date = new Date(d.created_at)
+      
+      // Skip jika tanggal tidak valid
+      if (isNaN(date.getTime())) return
       
       switch (periode) {
         case 'harian':
           // Format: DD/MM
-          key = date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' })
+          key = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`
           break
         case 'bulanan':
           // Format: MMM YYYY
@@ -142,12 +167,22 @@ export default function Dashboard() {
           .from('penjualan')
           .select('*, aplikasi_premium(nama_aplikasi)')
           .eq('user_id', admin.id)
+          .order('created_at', { ascending: false })
 
         if (!mounted || !penjualan) return
         setData(penjualan)
 
+        // Debug: Log data untuk troubleshooting
+        console.log('Raw penjualan data:', penjualan.map(d => ({
+          id: d.id,
+          created_at: d.created_at,
+          harga_jual: d.harga_jual,
+          aplikasi: d.aplikasi_premium?.nama_aplikasi
+        })))
+
         // Filter data berdasarkan periode yang dipilih
         const filteredData = filterDataByPeriode(penjualan, filterPeriode)
+        console.log('Filtered data for', filterPeriode, ':', filteredData.length)
 
         // Kalkulasi data dengan optimasi berdasarkan data yang sudah difilter
         const pemasukan = filteredData.reduce((acc, d) => acc + (d.harga_jual || 0), 0)
@@ -475,7 +510,7 @@ export default function Dashboard() {
   
   const getGrafikTitle = () => {
     switch (filterPeriode) {
-      case 'harian': return 'Grafik Pemasukan Harian'
+      case 'harian': return 'Grafik Pemasukan Harian (7 Hari Terakhir)'
       case 'bulanan': return 'Grafik Pemasukan Bulanan'
       case 'tahunan': return 'Grafik Pemasukan Tahunan'
       default: return 'Grafik Pemasukan'
@@ -571,6 +606,11 @@ export default function Dashboard() {
         <div className="dashboard-rows">
           <div className="row-graph">
             <h4>{getGrafikTitle()}</h4>
+            {/* Debug info - hapus ini setelah masalah teratasi */}
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
+              Debug: Total data = {data.length}, Filtered data = {filterDataByPeriode(data, filterPeriode).length}, 
+              Periode = {filterPeriode}, Grafik keys = {Object.keys(grafik).length}
+            </div>
             <div style={{ position: 'relative', height: '200px', width: '100%' }}>
               <canvas ref={grafikRef} />
             </div>
