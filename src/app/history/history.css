@@ -173,6 +173,68 @@
   color: #103d93;
 }
 
+/* Tombol Mau Habis - Warna Merah Tegas */
+.btn-mau-habis {
+  padding: 10px 16px;
+  background-color: #ffebee;
+  color: #c62828;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #ef5350;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-mau-habis:hover {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+}
+
+.btn-mau-habis.active {
+  background-color: #d32f2f;
+  color: white;
+  border-color: #b71c1c;
+}
+
+.btn-mau-habis:disabled {
+  background-color: #f5f5f5;
+  color: #bdbdbd;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+/* Tombol Sudah Habis - Warna Orange/Amber Tegas */
+.btn-sudah-habis {
+  padding: 10px 16px;
+  background-color: #fff3e0;
+  color: #e65100;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #ffab40;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-sudah-habis:hover {
+  background-color: #ffe0b2;
+  color: #bf360c;
+}
+
+.btn-sudah-habis.active {
+  background-color: #ff6f00;
+  color: white;
+  border-color: #e65100;
+}
+
+.btn-sudah-habis:disabled {
+  background-color: #f5f5f5;
+  color: #bdbdbd;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
 /* Tabel */
 .tabel-history {
   width: 100%;
@@ -204,9 +266,24 @@
   background-color: #f5faff;
 }
 
-/* Highlight baris yang mau habis */
+/* Highlight baris yang mau habis - Merah Tegas */
 .tabel-history .baris-mau-habis {
-  background-color: rgba(255, 0, 0, 0.07); /* merah soft transparan */
+  background-color: rgba(211, 47, 47, 0.12) !important; /* Merah tegas dengan transparansi */
+  border-left: 4px solid #d32f2f; /* Border kiri merah */
+}
+
+.tabel-history .baris-mau-habis:hover {
+  background-color: rgba(211, 47, 47, 0.18) !important; /* Merah lebih gelap saat hover */
+}
+
+/* Highlight baris yang sudah habis - Orange/Amber Tegas */
+.tabel-history .baris-sudah-habis {
+  background-color: rgba(255, 111, 0, 0.12) !important; /* Orange tegas dengan transparansi */
+  border-left: 4px solid #ff6f00; /* Border kiri orange */
+}
+
+.tabel-history .baris-sudah-habis:hover {
+  background-color: rgba(255, 111, 0, 0.18) !important; /* Orange lebih gelap saat hover */
 }
 
 /* Footer tabel */
@@ -257,31 +334,6 @@
   display: inline-block;
   margin: 0 4px;
   vertical-align: middle;
-}
-
-/* Tombol Filter Mau Habis */
-.btn-mau-habis {
-  padding: 8px 16px;
-  background-color: #f87171; /* merah soft */
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-}
-
-.btn-mau-habis:hover {
-  background-color: #ef4444; /* merah lebih gelap saat hover */
-  transform: translateY(-1px);
-}
-
-.btn-mau-habis.active {
-  background-color: #dc2626; /* merah lebih gelap untuk active */
-  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
-  transform: translateY(-1px);
 }
 
 /* ================= MODAL EDIT ================= */

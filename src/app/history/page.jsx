@@ -46,6 +46,7 @@ export default function HistoryPage() {
   const [data, setData] = useState([])
   const [search, setSearch] = useState('')
   const [filterExpiring, setFilterExpiring] = useState(false)
+  const [filterExpired, setFilterExpired] = useState(false) // Filter untuk yang sudah habis
   const [sortBy, setSortBy] = useState('all') // 'all', 'today', 'thisMonth'
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -95,8 +96,18 @@ export default function HistoryPage() {
 
     const initializePage = async () => {
       try {
-        // Check auth terlebih dahulu
-        const { data: session } = await supabase.auth.getSession()
+        // Check auth terlebih dahulu dengan error handling
+        const { data: session, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError)
+          // Jika ada error dengan session, coba refresh atau redirect ke login
+          if (sessionError.message.includes('Invalid Refresh Token')) {
+            await supabase.auth.signOut()
+            router.push('/login')
+            return
+          }
+        }
         
         if (!session.session) {
           router.push('/login')
@@ -115,6 +126,10 @@ export default function HistoryPage() {
           .eq('email', email)
           .single()
 
+        if (adminError) {
+          console.error('Admin fetch error:', adminError)
+        }
+
         if (!admin) {
           if (mounted) {
             setErrorMsg('Admin tidak ditemukan')
@@ -127,7 +142,7 @@ export default function HistoryPage() {
         setProfile(admin)
 
         // Fetch penjualan data dengan join ke aplikasi_premium
-        const { data: penjualanData, error } = await supabase
+        const { data: penjualanData, error: penjualanError } = await supabase
           .from('penjualan')
           .select('*, aplikasi_premium(nama_aplikasi)')
           .eq('user_id', admin.id)
@@ -135,24 +150,33 @@ export default function HistoryPage() {
 
         if (!mounted) return
 
-        if (penjualanData && !error) {
+        if (penjualanData && !penjualanError) {
           setData(penjualanData)
         } else {
-          console.error('Error fetching penjualan data:', error)
+          console.error('Error fetching penjualan data:', penjualanError)
           setData([])
         }
 
         // Fetch aplikasi list untuk dropdown edit
-        const { data: aplikasiData } = await supabase
+        const { data: aplikasiData, error: aplikasiError } = await supabase
           .from('aplikasi_premium')
           .select('id, nama_aplikasi')
           .order('nama_aplikasi')
+        
+        if (aplikasiError) {
+          console.error('Error fetching aplikasi data:', aplikasiError)
+        }
         
         if (aplikasiData) {
           setAplikasiList(aplikasiData)
         }
       } catch (error) {
         console.error('Error loading history:', error)
+        // Jika error umum terjadi, kemungkinan ada masalah dengan auth
+        if (error.message && error.message.includes('Invalid Refresh Token')) {
+          await supabase.auth.signOut()
+          router.push('/login')
+        }
       } finally {
         if (mounted) setLoading(false)
       }
@@ -160,8 +184,27 @@ export default function HistoryPage() {
 
     initializePage()
 
+    // Auth state listener dengan error handling yang lebih baik
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event)
+      
+      if (event === 'SIGNED_OUT' || !session) {
+        if (mounted) {
+          router.push('/login')
+        }
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed successfully')
+      } else if (event === 'SIGNED_IN') {
+        console.log('User signed in')
+        if (mounted) {
+          setUser(session.user)
+        }
+      }
+    })
+
     return () => {
       mounted = false
+      authListener?.subscription?.unsubscribe()
     }
   }, [router])
 
@@ -197,14 +240,19 @@ export default function HistoryPage() {
         matchDate = false
       }
 
-      // Filter berdasarkan expire soon
+      // Filter berdasarkan status masa aktif
+      let matchStatus = true
       if (filterExpiring) {
-        return matchSearch && matchDate && diffDays <= 5 && diffDays >= 0
+        // Mau habis: 0-5 hari lagi
+        matchStatus = diffDays <= 5 && diffDays >= 0
+      } else if (filterExpired) {
+        // Sudah habis: tanggal selesai sudah lewat
+        matchStatus = diffDays < 0
       }
 
-      return matchSearch && matchDate
+      return matchSearch && matchDate && matchStatus
     })
-  }, [data, search, filterExpiring, sortBy])
+  }, [data, search, filterExpiring, filterExpired, sortBy])
 
   // Memoized totals untuk menghindari kalkulasi berulang
   const totals = useMemo(() => {
@@ -401,9 +449,26 @@ export default function HistoryPage() {
           
           <button
             className={`btn-mau-habis ${filterExpiring ? 'active' : ''}`}
-            onClick={() => setFilterExpiring(!filterExpiring)}
+            onClick={() => {
+              const newExpiring = !filterExpiring
+              setFilterExpiring(newExpiring)
+              if (newExpiring) setFilterExpired(false) // Reset filter expired jika mau habis aktif
+            }}
+            disabled={filterExpired} // Disable jika sudah habis aktif
           >
             Mau Habis
+          </button>
+          
+          <button
+            className={`btn-sudah-habis ${filterExpired ? 'active' : ''}`}
+            onClick={() => {
+              const newExpired = !filterExpired
+              setFilterExpired(newExpired)
+              if (newExpired) setFilterExpiring(false) // Reset filter expiring jika sudah habis aktif
+            }}
+            disabled={filterExpiring} // Disable jika mau habis aktif
+          >
+            Sudah Habis
           </button>
         </div>
 
@@ -413,7 +478,8 @@ export default function HistoryPage() {
             Debug: Total data = {data.length}, Filtered data = {filteredData.length} | 
             Filter: {sortBy === 'all' ? 'Semua Data' : sortBy === 'today' ? 'Hari Ini' : 'Bulan Ini'} | 
             Search: "{search}" | 
-            Expire Filter: {filterExpiring ? 'ON' : 'OFF'}
+            Mau Habis: {filterExpiring ? 'ON' : 'OFF'} | 
+            Sudah Habis: {filterExpired ? 'ON' : 'OFF'}
           </div>
           
           <table className="tabel-history">
@@ -444,10 +510,19 @@ export default function HistoryPage() {
                   const tanggalSelesai = new Date(item.tanggal_selesai)
                   const now = new Date()
                   const diff = (tanggalSelesai - now) / (1000 * 60 * 60 * 24)
-                  const isExpiringSoon = diff <= 5 && diff >= 0
+                  const isExpiringSoon = diff <= 5 && diff >= 0 // Mau habis (merah)
+                  const isExpired = diff < 0 // Sudah habis (kuning)
+                  
+                  // Tentukan class CSS berdasarkan status
+                  let rowClass = ''
+                  if (isExpired) {
+                    rowClass = 'baris-sudah-habis' // Kuning untuk yang sudah habis
+                  } else if (isExpiringSoon) {
+                    rowClass = 'baris-mau-habis' // Merah untuk yang mau habis
+                  }
                   
                   return (
-                    <tr key={item.id} className={isExpiringSoon ? 'baris-mau-habis' : ''}>
+                    <tr key={item.id} className={rowClass}>
                       <td>{item.aplikasi_premium?.nama_aplikasi || '-'}</td>
                       <td>{item.jumlah_order}</td>
                       <td>{formatRupiah(item.harga_beli)}</td>
