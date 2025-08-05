@@ -95,24 +95,32 @@ export default function Dashboard() {
     return filtered
   }
 
-  // Fungsi terpisah untuk filter data grafik harian (7 hari terakhir)
+  // Fungsi terpisah untuk filter data grafik
   const filterDataForGrafik = (penjualan, periode) => {
-    if (periode !== 'harian') {
-      return filterDataByPeriode(penjualan, periode)
-    }
-    
-    // Khusus untuk grafik harian, gunakan 7 hari terakhir
     const now = new Date()
+    
     const filtered = penjualan.filter(d => {
       if (!d.created_at) return false
       
       const date = new Date(d.created_at)
       if (isNaN(date.getTime())) return false
       
-      const sevenDaysAgo = new Date(now)
-      sevenDaysAgo.setDate(now.getDate() - 6)
-      sevenDaysAgo.setHours(0, 0, 0, 0)
-      return date >= sevenDaysAgo
+      switch (periode) {
+        case 'harian':
+          // Untuk grafik harian, gunakan 7 hari terakhir
+          const sevenDaysAgo = new Date(now)
+          sevenDaysAgo.setDate(now.getDate() - 6)
+          sevenDaysAgo.setHours(0, 0, 0, 0)
+          return date >= sevenDaysAgo
+        case 'bulanan':
+          // Untuk grafik bulanan, tampilkan semua bulan yang ada data (tidak dibatasi tahun ini saja)
+          return true // Tampilkan semua data untuk grafik bulanan
+        case 'tahunan':
+          // Untuk grafik tahunan, tampilkan semua tahun yang ada data
+          return true // Tampilkan semua data untuk grafik tahunan
+        default:
+          return true
+      }
     })
     
     return filtered
@@ -162,6 +170,39 @@ export default function Dashboard() {
       
       data[key] = (data[key] || 0) + (d.harga_jual || 0)
     })
+    
+    // Urutkan data berdasarkan periode
+    if (periode === 'bulanan') {
+      // Urutkan data bulanan berdasarkan tanggal (chronological order)
+      const sortedEntries = Object.entries(data).sort((a, b) => {
+        const [monthA, yearA] = a[0].split(' ')
+        const [monthB, yearB] = b[0].split(' ')
+        
+        // Konversi nama bulan Indonesia ke angka
+        const monthMap = {
+          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'Mei': 4, 'Jun': 5,
+          'Jul': 6, 'Agu': 7, 'Sep': 8, 'Okt': 9, 'Nov': 10, 'Des': 11
+        }
+        
+        const yearDiff = parseInt(yearA) - parseInt(yearB)
+        if (yearDiff !== 0) return yearDiff
+        
+        return monthMap[monthA] - monthMap[monthB]
+      })
+      const sortedData = {}
+      sortedEntries.forEach(([key, value]) => {
+        sortedData[key] = value
+      })
+      return sortedData
+    } else if (periode === 'tahunan') {
+      // Urutkan data tahunan
+      const sortedEntries = Object.entries(data).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+      const sortedData = {}
+      sortedEntries.forEach(([key, value]) => {
+        sortedData[key] = value
+      })
+      return sortedData
+    }
     
     return data
   }
@@ -540,8 +581,8 @@ export default function Dashboard() {
   const getGrafikTitle = () => {
     switch (filterPeriode) {
       case 'harian': return 'Grafik Pemasukan Harian (7 Hari Terakhir)'
-      case 'bulanan': return 'Grafik Pemasukan Bulanan'
-      case 'tahunan': return 'Grafik Pemasukan Tahunan'
+      case 'bulanan': return 'Grafik Pemasukan Bulanan (Semua Bulan)'
+      case 'tahunan': return 'Grafik Pemasukan Tahunan (Semua Tahun)'
       default: return 'Grafik Pemasukan'
     }
   }
